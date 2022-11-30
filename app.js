@@ -4,6 +4,11 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 
+//routers
+var userRouter = require("./route/userRouter");
+var commentRouter = require("./routes/commentRouter");
+var postRouter = require("./routes/postRouter");
+
 //passport
 var passport = require("passport");
 
@@ -19,6 +24,7 @@ app.use(function(req, res, next) {
   next(createError(404));
 });
 
+app.use("/", [userRouter, commentRouter, postRouter]);
 // error handler
 app.use(function(err, req, res, next) {
   // set locals, only providing error in development
