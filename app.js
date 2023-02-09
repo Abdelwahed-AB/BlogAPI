@@ -1,20 +1,23 @@
+require("dotenv").config();
+
+var debug = require("debug")("App");
 var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
-var logger = require('morgan');
+var morgan = require('morgan');
 
-//routers
-var userRouter = require("./route/userRouter");
-var commentRouter = require("./routes/commentRouter");
-var postRouter = require("./routes/postRouter");
+//Custom middleware
+const error = require("./middleware/error");
 
-//passport
-var passport = require("passport");
+//utilities
+const setupRoutes = require("./utilities/routing");
+const connectDb = require("./utilities/db");
+const logger = require("./utilities/logger");
 
 var app = express();
 
-app.use(logger('dev'));
+app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
@@ -24,16 +27,14 @@ app.use(function(req, res, next) {
   next(createError(404));
 });
 
-app.use("/", [userRouter, commentRouter, postRouter]);
+connectDb();
+setupRoutes(app);
+
 // error handler
-app.use(function(err, req, res, next) {
-  // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
+app.use(error);
 
-  // render the error page
-  res.status(err.status || 500);
-  res.render('error');
+let PORT = process.env.PORT;
+app.listen(PORT, ()=>{
+  debug("listening on port : " + PORT);
+  logger.info(" App listening on port : " + PORT);
 });
-
-module.exports = app;
