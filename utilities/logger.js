@@ -4,9 +4,11 @@ const format = winston.format;
 const myFormat = format.printf(({level, message, timestamp, ...metadata})=>{
     let msg = `${timestamp}[${level}] : ${message}`;
     if(metadata)
-        msg += JSON.stringify(metadata);
+        msg += "; "+JSON.stringify(metadata);
     return msg;
 });
+
+let logPath = process.env.NODE_ENV == "test"? "logs/test": "logs";
 
 const logger = winston.createLogger({
     format: winston.format.combine(
@@ -15,13 +17,13 @@ const logger = winston.createLogger({
         myFormat
     ),
     transports: [
-        new winston.transports.File({filename: "logs/error.log", level: "error"}),
+        new winston.transports.File({filename: logPath + "/error.log", level: "error"}),
         new winston.transports.Console({level: "error"}), //!Remove in production
-        new winston.transports.File({filename: "logs/combined.log"})
+        new winston.transports.File({filename: logPath + "/combined.log"})
     ],
     exceptionHandlers: [
-        new winston.transports.File({ filename: 'logs/exceptions.log', handleExceptions: true, handleRejections: true}),
-        new winston.transports.File({ filename: 'logs/combined.log' })
+        new winston.transports.File({ filename: logPath + '/exceptions.log', handleExceptions: true, handleRejections: true}),
+        new winston.transports.File({ filename: logPath + '/combined.log' })
     ]
 });
 
