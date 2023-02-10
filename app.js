@@ -11,6 +11,7 @@ var morgan = require('morgan');
 const error = require("./middleware/error");
 
 //utilities
+const validationSetup = require("./utilities/validationSetup");
 const setupRoutes = require("./utilities/routing");
 const connectDb = require("./utilities/db");
 const logger = require("./utilities/logger");
@@ -27,6 +28,7 @@ app.use(function(req, res, next) {
   next(createError(404));
 });
 
+validationSetup();
 connectDb();
 setupRoutes(app);
 

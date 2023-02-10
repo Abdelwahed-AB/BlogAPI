@@ -1,11 +1,24 @@
-var mongoose = require("mongoose");
-var Schema = mongoose.Schema;
+const mongoose = require("mongoose");
+const Schema = mongoose.Schema;
+const Joi = require("joi");
+Joi.objectId = require("joi-objectid")(Joi);
 
-var CommentSchema = new Schema({
+const CommentSchema = new Schema({
     content: {type: String, required: true},
-    author: {type: mongoose.Types.ObjectId},
-    date: {type: Date, required: true},
-    post: {type: mongoose.Types.ObjectId},
+    author: {type: mongoose.Types.ObjectId, required: true},
+    date: {type: Date, required: true, default: new Date()},
+    post: {type: mongoose.Types.ObjectId, required: true},
 });
 
-module.exports = mongoose.model("comment", CommentSchema);
+let validateComment = (comment) =>{
+    let schema = Joi.object({
+        content: Joi.string().required(),
+        post: Joi.objectId().required(),
+    });
+
+    let err = schema.validate(comment).error;
+    return err;
+};
+
+exports.Comment = mongoose.model("comment", CommentSchema);
+exports.validateComment = validateComment;
