@@ -1,1 +1,3 @@
 2023-02-09T20:26:58.614Z[info] :  App listening on port : 3000{}
+2023-02-11T11:14:56.250Z[info] :  App listening on port : 3000; {}
+2023-02-11T11:14:56.310Z[info] : Connect successfully to mongodb://localhost/blogApi; {}

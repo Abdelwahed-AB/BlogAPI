@@ -1,11 +1,17 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 const Joi = require("joi");
+const jwt = require("jsonwebtoken");
 
 var UserSchema = new Schema({
     username: {type: String, required: true, minLength: 5, maxLength: 100, unique: true},
     password: {type: String, required: true, maxLength: 255},
+    isAdmin: {type: Boolean, default: false},
 });
+
+UserSchema.methods.generateAuthToken = function(){
+    return jwt.sign({_id: this._id, username: this.username, isAdmin: this.isAdmin}, process.env.JWTPK);
+}
 
 /**
  * Used to validate a user object that's passed in the request

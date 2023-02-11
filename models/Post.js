@@ -11,6 +11,11 @@ const PostSchema = new Schema({
     date: {type: Date, default: new Date()},
 });
 
+/**
+ * Used to validate a post object that's passed in the request
+ * @param {*} post 
+ * @returns List of errors if there are any
+ */
 const validatePost = (post)=>{
 
     //*We only need to check title and content, since author will be the logged in user

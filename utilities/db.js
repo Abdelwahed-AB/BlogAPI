@@ -3,6 +3,8 @@ const debug = require("debug")("DatabaseConnection");
 const logger = require("../utilities/logger");
 
 let db = process.env.DB_URL;
+if(process.env.NODE_ENV == "test")
+    db += "_test";
 
 module.exports = ()=>{
     mongoose.connect(db).then(()=>{

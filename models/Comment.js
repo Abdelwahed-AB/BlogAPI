@@ -10,6 +10,11 @@ const CommentSchema = new Schema({
     post: {type: mongoose.Types.ObjectId, required: true},
 });
 
+/**
+ * Used to validate a comment object that's passed in the request
+ * @param {*} comment 
+ * @returns List of errors if there are any
+ */
 let validateComment = (comment) =>{
     let schema = Joi.object({
         content: Joi.string().required(),
