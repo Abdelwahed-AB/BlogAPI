@@ -114,4 +114,45 @@ describe("User router", ()=>{
             expect(Object.keys(res.body)).toEqual(expect.arrayContaining(["_id", "username", "password"]));
         });
     });
+
+    describe("Post /", ()=>{
+        /*
+        * it should return 400 if user is invalid
+        * it should create a user in the database
+        * it should return a user object if it is created
+        */
+        let testCase = (validUser = true) => {
+            let testUser;
+            if(validUser)
+                testUser = { username: "testUser", password: "testPass"};
+            else
+                testUser = { username:"ho", password: "0"};
+
+            let url = "/users";
+        
+            return request(server).post(url).send(testUser);
+        };
+
+        it("Should return 400 if user is invalid.", async ()=>{
+            let res = await testCase(false);
+
+            expect(res.statusCode).toBe(400);
+        });
+
+        it("Should create a user in the database if user is valid.", async ()=>{
+            let res = await testCase();
+            let user = User.findOne({username: "testUser"});
+
+            expect(res.statusCode).toBe(200);
+            expect(user).toBeDefined();
+        });
+
+        it("Should return a user object if it is created.", async ()=>{
+            let res = await testCase();
+
+            expect(res.statusCode).toBe(200);
+            expect(res.body.username).toEqual("testUser");
+        });
+    });
+
 });
