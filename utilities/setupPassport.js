@@ -18,8 +18,6 @@ module.exports = (passport)=>{
                 if(!user)
                     return done(null, false);
                 let passCheck = await user.verifyPassword(password);
-                console.log(password);
-                console.log(passCheck);
                 if(!passCheck)
                     return done(null, false);
                 

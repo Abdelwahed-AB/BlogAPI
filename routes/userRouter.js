@@ -3,6 +3,7 @@ const router = express.Router();
 const passport = require("passport");
 
 const { validateUser } = require("../models/User");
+const checkUsername = require("../middleware/checkUsername");
 const validate = require("../middleware/validate");
 const admin = require("../middleware/admin");
 
@@ -12,11 +13,11 @@ router.get("/", [passport.authenticate("jwt", {session: false}), admin], UserCon
 
 router.get("/:id", [passport.authenticate("jwt", {session: false}), admin], UserController.get_user);
 
-router.post("/", validate(validateUser), UserController.create_user);
+router.post("/", [validate(validateUser), checkUsername] , UserController.create_user);
 
 router.post("/login", validate(validateUser), UserController.login_user);
 
-router.put("/:id", validate(validateUser), UserController.update_user);
+router.put("/:id", [validate(validateUser), checkUsername], UserController.update_user);
 
 router.delete("/:id", UserController.delete_user);
 

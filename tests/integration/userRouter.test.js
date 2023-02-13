@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const request = require("supertest");
 const { User } = require("../../models/User");
+const jwt = require("jsonwebtoken");
 
 let server;
 describe("User router", ()=>{
@@ -110,8 +111,7 @@ describe("User router", ()=>{
             let res = await testCase(true, true);
             
             expect(res.statusCode).toBe(200);
-            console.log(res.body);
-            expect(Object.keys(res.body)).toEqual(expect.arrayContaining(["_id", "username", "password"]));
+            expect(Object.keys(res.body)).toEqual(expect.arrayContaining(["_id", "username"]));
         });
     });
 
@@ -155,4 +155,46 @@ describe("User router", ()=>{
         });
     });
 
+    describe("Post /login", ()=>{
+        /*
+        * it should return 400 if username or password is invalid
+        * it should return a valid jwtToken if user data is valid
+        */
+        let testCase = async (validUsername = true, validPassword = true) => {
+            let user = new User({username: "testUser", password: "testPass"});
+            await user.encryptPassword();
+            await user.save();
+
+            let payload = {
+                username: validUsername ?"testUser":"ho",
+                password: validPassword ?"testPass":"He",
+            }
+            let url = "/users/login";
+        
+            return request(server).post(url).send(payload);
+        };
+
+        it("Should return 400 if username is invalid", async ()=>{
+            let res = await testCase(false);
+            expect(res.statusCode).toBe(400);
+        });
+
+        it("Should return 400 if password is invalid", async ()=>{
+            let res = await testCase(true, false);
+            expect(res.statusCode).toBe(400);
+        });
+
+        it("Should return a valid jwtToken if user data is valid", async ()=>{
+            let res = await testCase(true, true);
+            
+            expect(res.statusCode).toBe(200);
+            
+            let isValidToken = ((token)=>{
+                let tokenHead = JSON.parse(atob(token.split(".")[0]));
+                return tokenHead.typ == "JWT";
+            })(res.body.token);
+            
+            expect(isValidToken).toBeTruthy(); 
+        });
+    });
 });
