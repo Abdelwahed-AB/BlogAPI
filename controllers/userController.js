@@ -25,7 +25,7 @@ exports.create_user = async (req, res) =>{
 };
 
 exports.update_user = async (req, res) =>{
-    let user = User.findById(req.params.id);
+    let user = await User.findById(req.params.id);
     if(!user)
         return res.status(404).send(`User with id ${req.params.id} not found.`);
     

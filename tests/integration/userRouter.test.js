@@ -155,6 +155,99 @@ describe("User router", ()=>{
         });
     });
 
+    describe("Put /:id", ()=>{
+        /*
+        * it should return 404 if user is not found
+        * it should return 400 if user is invalid
+        * it should update the user in the database
+        * it should return a user object if it is created
+        */
+        let testCase = async (validUser = true, validId = true) => {
+            let user = new User({username: "testUser", password: "testPass"});
+            await user.encryptPassword();
+            await user.save();
+
+            let testUser;
+            if(validUser)
+                testUser = { username: "testUser1", password: "testPass1"};
+            else
+                testUser = { username:"ho", password: "0"};
+
+            let url = "/users/"+ (validId? user._id: (new mongoose.Types.ObjectId()).toHexString());
+        
+            return request(server).put(url).send(testUser);
+        };
+
+        it("Should return 404 if user is not found.", async ()=>{
+            let res = await testCase(true, false);
+
+            expect(res.statusCode).toBe(404);
+        });
+
+        it("Should return 404 if user is invalid.", async ()=>{
+            let res = await testCase(false);
+
+            expect(res.statusCode).toBe(400);
+        });
+
+        it("Should update the user in the database.", async ()=>{
+            let res = await testCase();
+            let user = await User.findOne({username: "testUser1"});
+
+            let passwordChanged = await user.verifyPassword("testPass1");
+
+            expect(res.statusCode).toBe(200);
+            expect(user).toBeDefined();
+            expect(passwordChanged).toBeTruthy();
+        });
+
+        it("Should return the updated user.", async ()=>{
+            let res = await testCase();
+
+            expect(res.statusCode).toBe(200);
+            expect(res.body.username).toBe("testUser1");
+        });
+    });
+
+    describe("Delete /:id", ()=>{
+        /*
+        * it should return 404 if user is not found
+        * it should remove the user in the database
+        * it should return a user object if it is deleted
+        */
+
+        let testCase = async (validId = true) => {
+            let user = new User({username: "testUser", password: "testPass"});
+            await user.encryptPassword();
+            await user.save();
+            
+            let url = "/users/"+ (validId? user._id: (new mongoose.Types.ObjectId()).toHexString());
+
+            return request(server).delete(url).send();
+        };
+
+        it("Should return 404 if user is not found.", async ()=>{
+            let res = await testCase(false);
+            
+            expect(res.statusCode).toBe(404);
+        });
+
+        it("Should remove the user from the database.", async ()=>{
+            let res = await testCase();
+            let user = await User.findOne({username: "testUser"});
+
+            expect(res.statusCode).toBe(200);
+            expect(user).toBeNull();
+        });
+
+        it("Should return the deleted user.", async ()=>{
+            let res = await testCase();
+
+            expect(res.statusCode).toBe(200);
+            expect(res.body.username).toBe("testUser");
+        });
+    });
+
     describe("Post /login", ()=>{
         /*
         * it should return 400 if username or password is invalid
