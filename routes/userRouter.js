@@ -17,8 +17,8 @@ router.post("/", [validate(validateUser), checkUsername] , UserController.create
 
 router.post("/login", validate(validateUser), UserController.login_user);
 
-router.put("/:id", [validate(validateUser), checkUsername], UserController.update_user);
+router.put("/:id", [passport.authenticate("jwt", {session: false}), validate(validateUser), checkUsername], UserController.update_user);
 
-router.delete("/:id", UserController.delete_user);
+router.delete("/:id", [passport.authenticate("jwt", {session: false}), admin], UserController.delete_user);
 
 module.exports = router;

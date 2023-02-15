@@ -1,0 +1,10 @@
+# I should add error handling when saving objects to db
+---ex:
+    post.save();
+    =>
+    post.save().then(post=>{
+        return res.json(post)
+    })
+    .catch(err=>{
+        //forward the error to Error middleware
+    })

@@ -6,14 +6,14 @@ const Joi = require("joi");
 const PostSchema = new Schema({
     title: {type: String, required: true, maxLength: 200, minLength: 5},
     content: {type: String, required: true, maxLength: 2000},
-    author: {type: mongoose.Types.ObjectId, required: true},
-    comments: [mongoose.Types.ObjectId],
+    author: {type: Schema.Types.ObjectId, ref:"user", required: true},
+    comments: [{type: Schema.Types.ObjectId, ref:"comment"}],
     date: {type: Date, default: new Date()},
 });
 
 /**
  * Used to validate a post object that's passed in the request
- * @param {*} post 
+ * @param { Object } post 
  * @returns List of errors if there are any
  */
 const validatePost = (post)=>{

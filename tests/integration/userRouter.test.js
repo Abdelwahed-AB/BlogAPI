@@ -1,7 +1,6 @@
 const mongoose = require("mongoose");
 const request = require("supertest");
 const { User } = require("../../models/User");
-const jwt = require("jsonwebtoken");
 
 let server;
 describe("User router", ()=>{
@@ -25,7 +24,7 @@ describe("User router", ()=>{
          * test case to run with different options
          * @param {Boolean} loggedIn 
          * @param {Boolean} isAdmin
-         * @returns 
+         * @returns { Promise } request
          */
         let testCase = async (loggedIn = false, isAdmin = false) => {
             if(!loggedIn)

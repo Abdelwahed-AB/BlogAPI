@@ -1,16 +1,65 @@
-const Post = require("../models/Post");
+const {Post} = require("../models/Post");
 
 //get all posts in db
-exports.get_posts = () => {/* TBD */};
+exports.get_posts = async (req, res) => {
+    let posts = await Post.find({});
+    res.json(posts);
+};
 
 //get a specific post
-exports.get_post = () => {/* TBD */};
+exports.get_post = async (req, res) => {
+    let id = req.params.id;
 
-//get post comments
-exports.get_post_comments = () => {/* TBD */};
+    let post = await Post.findById(id);
+    if(!post)
+        return res.status(404).send(`Post with id ${id} not found.`);
+    
+    res.json(post);
+};
 
-exports.create_post = () => {/* TBD */};
+exports.create_post = async (req, res) => {
+    let user = req.user;
 
-exports.update_post = () => {/* TBD */};
+    let post = new Post({
+        title: req.body.title,
+        content: req.body.content,
+        author: user._id
+    });
 
-exports.delete_post = () => {/* TBD */};
+    await post.save();
+    res.send();
+};
+
+exports.update_post = async (req, res) => {
+    let id = req.params.id;
+    let user = req.user;
+
+    let post = await Post.findById(id);
+    if(!post)
+        return res.status(404).send(`Post with id ${id} not found.`);
+    
+    if(post.author !== user._id)
+        return res.status(403).send("User does not have permission to update post.");
+
+    post.title = req.body.title;
+    post.content = req.body.content;
+
+    await post.save();
+    res.json(post);
+};
+
+/** @type {import("express").RequestHandler} */
+exports.delete_post = async (req, res) => {
+    let id = req.params.id;
+    let user = req.user;
+
+    let post = await Post.findById(id);
+    if(!post)
+        return res.status(404).send(`Post with id ${id} not found.`);
+    
+    if(post.author !== user._id)
+        return res.status(403).send("User does not have permission to delete post.");
+    
+    await post.delete();
+    res.json(post);
+};

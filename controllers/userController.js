@@ -2,7 +2,8 @@ const passport = require("passport");
 const {User} = require("../models/User");
 const _ = require("lodash");
 
-let publicVals = ["username", "_id"]
+let publicVals = ["username", "_id"]; //* User fields that will be sent back
+
 exports.get_users = async (req, res) =>{
     let users = await User.find({});
     let filterdUsers = users.map((user)=>_.pick(user, publicVals));
@@ -34,7 +35,6 @@ exports.update_user = async (req, res) =>{
     
     await user.encryptPassword();
     await user.save();
-    
     res.json(_.pick(user, publicVals));
 };
 
@@ -45,7 +45,7 @@ exports.delete_user = async (req, res) =>{
     
     res.json(_.pick(user, publicVals));
 };
-/** @type {import("express").RequestHandler} */
+
 exports.login_user = (req, res)=>{
     passport.authenticate("local", {session: false}, (err, user, msg)=>{
         if(err || !user)
