@@ -84,9 +84,10 @@ describe("Post router", ()=>{
          */
         let testCase = async (loggedIn = true, validPost = true)=>{
             let user = new User({username: "testUser", password: "testPassword"});
+            await user.encryptPassword();
             await user.save();
 
-            let token = loggendIn ? user.generateAuthToken():"";
+            let token = loggedIn ? user.generateAuthToken():"";
 
             post = validPost? {title: "testTitle", content: "testContent"}: {title: "0", content: "0"};
 
@@ -124,5 +125,50 @@ describe("Post router", ()=>{
                 .toBe(expect.arrayContaining(["title", "content", "author", "creationDate"]));
         });
 
+    });
+
+    describe("Put /:id", ()=>{
+        /**
+         * @typedef {Object} TestCaseParameters
+         * @property {Boolean} loggedIn send token in request
+         * @property {Boolean} authorized test with an authorized user
+         * @property {Boolean} validId send requests with a valid (existing) id
+         * @property {Boolean} validPost send request with a valid post
+         */
+
+        /**
+         * @param { TestCaseParameters } options options for testing
+         * @returns { Promise } Response
+         */
+        let testCase = async (options)=>{
+            let user = new User({username: "testUser", password: "testPassword"});
+            await user.encryptPassword();
+            await user.save();
+
+            let unAuthorizedUser = new User({username: "unAuthorized", password: "testPassword"});
+            await unAuthorizedUser.encryptPassword();
+            await unAuthorizedUser.save();
+
+
+            let post = new Post({title: "testTitle", content:"testContent", author: user._id});
+            await post.save();
+
+            let invalidPostId = (new mongoose.Types.ObjectId()).toHexString();
+            let url = "/posts/"+(options.validId ? post._id.toHexString() : invalidPostId );
+
+
+            let token = "";
+            if(options.loggedIn)
+                token = options.authorized ? user.generateAuthToken(): unAuthorizedUser.generateAuthToken();
+
+            let reqPost = options.validPost? {title: "ModifiedTitle", content: "ModifiedContent"}: {title: "0", content: "0"};
+
+            return request(server)
+                    .post(url)
+                    .set("x-auth-token", token)
+                    .send(reqPost);
+        }
+
+        testCase()
     });
 });
