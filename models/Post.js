@@ -8,7 +8,7 @@ const PostSchema = new Schema({
     content: {type: String, required: true, maxLength: 2000},
     author: {type: Schema.Types.ObjectId, ref:"user", required: true},
     comments: [{type: Schema.Types.ObjectId, ref:"comment"}],
-    date: {type: Date, default: new Date()},
+    creationDate: {type: Date, default: new Date()},
 });
 
 /**

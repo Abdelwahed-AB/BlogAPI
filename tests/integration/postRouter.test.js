@@ -1,6 +1,7 @@
 const { Post } = require("../../models/Post");
 const request = require("supertest");
 const mongoose = require("mongoose");
+const { User } = require("../../models/User");
 
 let server;
 describe("Post router", ()=>{
@@ -13,6 +14,10 @@ describe("Post router", ()=>{
 
     describe("Get /", ()=>{
 
+        /**
+         * Test case for Get /posts
+         * @returns { Promise } Response
+         */
         let testCase = ()=>{
             return request(server).get("/posts").send();
         };
@@ -35,6 +40,11 @@ describe("Post router", ()=>{
     });
 
     describe("Get /:id", ()=>{
+        /**
+         * Test case for Get /posts/:id
+         * @param {Boolean} validId determines wether the id sent in the req should be valid or not
+         * @returns { Promise } Response
+         */
         let testCase = async (validId = true)=>{
             let post = new Post({title: "testTitle", content:"testContent", author: new mongoose.Types.ObjectId()});
             await post.save();
@@ -42,7 +52,9 @@ describe("Post router", ()=>{
             let wrongId = (new mongoose.Types.ObjectId()).toHexString();
             let url = "/posts/"+(validId ? post._id.toHexString(): wrongId);
 
-            return request(server).get(url).send();
+            return request(server)
+                    .get(url)
+                    .send();
         }
 
         it("Should return 404 if post is not found.", async ()=>{
@@ -55,9 +67,62 @@ describe("Post router", ()=>{
             let res = await testCase();
 
             expect(res.statusCode).toBe(200);
-            expect(Object.keys(res.body)).toEqual(expect.arrayContaining(["title", "content", "author", "creationDate"]));
+            expect(Object.keys(res.body))
+                .toEqual(expect.arrayContaining(["title", "content", "author", "creationDate"]));
         });
     });
 
-    
+    describe("Post /", ()=>{
+
+        let post; //used to store the post sent in req, I should probbly add it in the return
+
+        /**
+         * testCase for Post /posts
+         * @param {Boolean} loggedIn determines wether the request will be sent with an auth token
+         * @param {Boolean} validPost determines wether the post sent in the request should be valid or not
+         * @returns {Promise} Response
+         */
+        let testCase = async (loggedIn = true, validPost = true)=>{
+            let user = new User({username: "testUser", password: "testPassword"});
+            await user.save();
+
+            let token = loggendIn ? user.generateAuthToken():"";
+
+            post = validPost? {title: "testTitle", content: "testContent"}: {title: "0", content: "0"};
+
+            return request(server)
+                    .post("/posts")
+                    .set("x-auth-token", token)
+                    .send(post);
+        };
+
+        it("Should return 401 if user is not authenticated.", async ()=>{
+            let res = await testCase(false);
+
+            expect(res.statusCode).toBe(401);
+        });
+
+        it("Should return 400 if post is invalid.", async()=>{
+            let res = await testCase(true, false);
+
+            expect(res.statusCode).toBe(400);
+        });
+
+        it("Should create the post in the database.", async()=>{
+            let res = await testCase();
+            let postInDb = await Post.findById(post._id);
+
+            expect(res.statusCode).toBe(200);
+            expect(postInDb).toBeDefined();
+        });
+
+        it("Should return the created post.", async()=>{
+            let res = await testCase();
+
+            expect(res.statusCode).toBe(200);
+            expect(Object.keys(res.body))
+                .toBe(expect.arrayContaining(["title", "content", "author", "creationDate"]));
+        });
+
+    });
 });
