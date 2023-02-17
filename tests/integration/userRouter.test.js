@@ -8,8 +8,8 @@ describe("User router", ()=>{
     beforeEach(async ()=>{server = require("../../app");});
     afterEach(async ()=>{
         await server.close();
-        await User.deleteMany({}); // cleanup
-        await User.collection.dropIndex("*");
+        await User.deleteMany({}).exec();
+        await User.collection.dropIndex("*"); // cleanup
     });
     afterAll(async ()=>{await mongoose.disconnect();});
 
@@ -156,15 +156,18 @@ describe("User router", ()=>{
 
     describe("Put /:id", ()=>{
         /*
+        * it should return 401 if user in not Logged in
         * it should return 404 if user is not found
         * it should return 400 if user is invalid
         * it should update the user in the database
         * it should return a user object if it is created
         */
-        let testCase = async (validUser = true, validId = true) => {
+        let testCase = async (validUser = true, validId = true, loggedIn=true) => {
             let user = new User({username: "testUser", password: "testPass"});
             await user.encryptPassword();
             await user.save();
+
+            let token = loggedIn? user.generateAuthToken() : "";
 
             let testUser;
             if(validUser)
@@ -174,8 +177,14 @@ describe("User router", ()=>{
 
             let url = "/users/"+ (validId? user._id: (new mongoose.Types.ObjectId()).toHexString());
         
-            return request(server).put(url).send(testUser);
+            return request(server).put(url).set("x-auth-token", token).send(testUser);
         };
+
+        it("Should return 401 if user is not logged in.", async ()=>{
+            let res = await testCase(true, true, false);
+
+            expect(res.statusCode).toBe(401);
+        });
 
         it("Should return 404 if user is not found.", async ()=>{
             let res = await testCase(true, false);
@@ -183,7 +192,7 @@ describe("User router", ()=>{
             expect(res.statusCode).toBe(404);
         });
 
-        it("Should return 404 if user is invalid.", async ()=>{
+        it("Should return 400 if user is invalid.", async ()=>{
             let res = await testCase(false);
 
             expect(res.statusCode).toBe(400);
@@ -210,20 +219,35 @@ describe("User router", ()=>{
 
     describe("Delete /:id", ()=>{
         /*
+        * it should return 401 if user is not logged in
+        * it should return 403 if user is not admin
         * it should return 404 if user is not found
         * it should remove the user in the database
         * it should return a user object if it is deleted
         */
 
-        let testCase = async (validId = true) => {
-            let user = new User({username: "testUser", password: "testPass"});
+        let testCase = async (validId = true, loggedIn=true, isAdmin = true) => {
+            let user = new User({username: "testUser", password: "testPass", isAdmin: isAdmin});
             await user.encryptPassword();
             await user.save();
             
+            let token = loggedIn ? user.generateAuthToken() : "";
             let url = "/users/"+ (validId? user._id: (new mongoose.Types.ObjectId()).toHexString());
 
-            return request(server).delete(url).send();
+            return request(server).delete(url).set("x-auth-token", token).send();
         };
+        
+        it("Should return 401 if user is not logged in", async ()=>{
+            let res = await testCase(true, false);
+            
+            expect(res.statusCode).toBe(401);
+        });
+
+        it("Should return 403 if user is not admin.", async ()=>{
+            let res = await testCase(true, true, false);
+            
+            expect(res.statusCode).toBe(403);
+        });
 
         it("Should return 404 if user is not found.", async ()=>{
             let res = await testCase(false);

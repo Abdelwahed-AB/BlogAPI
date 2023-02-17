@@ -2,7 +2,6 @@ require("dotenv").config();
 
 var debug = require("debug")("App");
 var express = require('express');
-var morgan = require('morgan');
 const passport = require("passport");
 
 //Custom middleware
@@ -18,7 +17,6 @@ const setupPassport = require("./utilities/setupPassport");
 
 var app = express();
 
-app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
