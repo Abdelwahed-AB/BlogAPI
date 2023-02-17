@@ -8,6 +8,6 @@ sets up the routes for the application
 */
 module.exports = (app)=>{
     app.use("/users", userRouter);
-    app.use("/posts", commentRouter);
+    app.use("/posts", postRouter);
     app.use("/posts/:post_id/comments", commentRouter);
 };

@@ -14,6 +14,6 @@ router.post("/", [passport.authenticate("jwt", {session: false}), validate(valid
 
 router.put("/:id", [passport.authenticate("jwt", {session: false}), validate(validatePost)], PostController.update_post);
 
-router.delete("/:id", [passport.authenticate("jwt", {session: false}), validate(validatePost)], PostController.delete_post);
+router.delete("/:id", [passport.authenticate("jwt", {session: false})], PostController.delete_post);
 
 module.exports = router;

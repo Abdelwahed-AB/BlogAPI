@@ -27,7 +27,7 @@ exports.create_post = async (req, res) => {
     });
 
     await post.save();
-    res.send();
+    res.send(post);
 };
 
 exports.update_post = async (req, res) => {
@@ -38,7 +38,7 @@ exports.update_post = async (req, res) => {
     if(!post)
         return res.status(404).send(`Post with id ${id} not found.`);
     
-    if(post.author !== user._id)
+    if(post.author.toHexString() !== user._id.toHexString())
         return res.status(403).send("User does not have permission to update post.");
 
     post.title = req.body.title;
@@ -57,9 +57,10 @@ exports.delete_post = async (req, res) => {
     if(!post)
         return res.status(404).send(`Post with id ${id} not found.`);
     
-    if(post.author !== user._id)
+    if(post.author.toHexString() !== user._id.toHexString())
         return res.status(403).send("User does not have permission to delete post.");
     
+    //TODO delete post comments
     await post.delete();
     res.json(post);
 };
