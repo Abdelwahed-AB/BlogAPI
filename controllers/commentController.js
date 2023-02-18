@@ -1,13 +1,56 @@
-const Comment = require("../models/Comment");
+const { Comment } = require("../models/Comment");
 
-//get all comments in db (for analytics?)
-exports.get_comments = () =>{/* TBD */};
+exports.get_comments = async (req, res) =>{
+    let postId =  req.params.post_id;
+    let comments = await Comment.find({post: postId});
 
-//get specified comment
-exports.get_comment = () =>{/* TBD */};
+    res.json(comments);
+};
 
-exports.create_comment = () =>{/* TBD */};
 
-exports.update_comment = () =>{/* TBD */};
+exports.get_comment = async (req, res) =>{
+    let id = req.params.id;
+    let comment = await Comment.findById(id);
 
-exports.delete_comment = () =>{/* TBD */};
+    res.json(comment);
+};
+
+exports.create_comment = async (req, res) => {
+    let comment = new Comment(req.body);
+    comment.author = req.user._id;
+
+    await comment.save();
+
+    res.json(comment);
+};
+
+exports.update_comment = async (req, res) =>{
+    let id = req.params.id;
+    let comment = await Comment.findById(id);
+
+    if(!comment)
+        return res.status(404).send(`Comment with id ${id} not found.`);
+
+    if( comment.author.toHexString() !== req.user._id.toHexString() )
+        return res.status(403).send("User does not have permission to update comment.");
+    
+    comment.content = res.body.content;
+
+    await comment.save();
+    res.json(comment);
+};
+
+exports.delete_comment = async (req, res) =>{
+    let id = req.params.id;
+    let comment = await Comment.findById(id);
+
+    if(!comment)
+        return res.status(404).send(`Comment with id ${id} not found.`);
+
+    if( comment.author.toHexString() !== req.user._id.toHexString() )
+        return res.status(403).send("User does not have permission to delete comment.");
+    
+    await comment.delete();
+
+    res.json(comment);
+};

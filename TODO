@@ -8,3 +8,5 @@
     .catch(err=>{
         //forward the error to Error middleware
     })
+
+# I should add dependency injection to make contollers testable without needing db
