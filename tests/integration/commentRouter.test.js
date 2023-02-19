@@ -44,14 +44,20 @@ describe("Comment router", ()=>{
     afterAll(async ()=>{await mongoose.disconnect();});
 
     describe("Get /", ()=>{
-        let testCase = async (validPost=true) => {
+
+        /**
+         * test case for get /posts/:postId/comments
+         * @param {Boolean} validPostId 
+         * @returns {Promise}
+         */
+        let testCase = async (validPostId=true) => {
             let user = await createUser();
             let post = await createPost(user);
 
             await createComment(post, user);
             await createComment(post, user);
 
-            let pid = validPost? post._id.toHexString(): (new mongoose.Types.ObjectId()).toHexString();
+            let pid = validPostId? post._id.toHexString(): (new mongoose.Types.ObjectId()).toHexString();
             let url = `/posts/${pid}/comments`;
 
             return request(server)
@@ -71,6 +77,48 @@ describe("Comment router", ()=>{
             expect(res.statusCode).toBe(200);
             expect(res.body.length).toBe(2);
             expect(res.body.every(c => c.content == "commentTestContent")).toBeTruthy();
+        });
+    });
+
+    describe("Get /:id", ()=>{
+        /**
+         * test case for get /posts/:postId/comments/:commentId
+         * @param {Boolean} validPostId 
+         * @returns {Promise}
+         */
+        let testCase = async (validPostId=true, validCommentId=true) => {
+            let user = await createUser();
+            let post = await createPost(user);
+
+            let comment = await createComment(post, user);
+
+            let pid = validPostId? post._id.toHexString(): (new mongoose.Types.ObjectId()).toHexString();
+            let cid = validCommentId? comment._id.toHexString() : (new mongoose.Types.ObjectId()).toHexString();
+
+            let url = `/posts/${pid}/comments/${cid}`;
+
+            return request(server)
+                    .get(url)
+                    .send();
+        };
+
+        it("Should return 404 if post id is invalid.", async ()=>{
+            let res = await testCase(false, true);
+
+            expect(res.statusCode).toBe(404);
+        });
+
+        it("Should return 404 if comment id is invalid.", async ()=>{
+            let res = await testCase(true, false);
+
+            expect(res.statusCode).toBe(404);
+        });
+
+        it("Should return the selected comment.", async ()=>{
+            let res = await testCase(true, true);
+
+            expect(res.statusCode).toBe(200);
+            expect(Object.keys(res.body)).toEqual(expect.arrayContaining(["_id", "content", "author"]));
         });
     });
 }); 

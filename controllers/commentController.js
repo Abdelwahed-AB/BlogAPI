@@ -17,9 +17,17 @@ exports.get_comments = async (req, res) =>{
 
 
 exports.get_comment = async (req, res) =>{
+    let postId = req.params.postId;
+    let post = await Post.findById(postId);
+
+    if(!post)
+        return res.status(404).send(`Post with id ${postId} not found.`);
+    
     let id = req.params.commentId;
     let comment = await Comment.findById(id);
-
+    if(!comment)
+        return res.status(404).send(`Comment with id ${id} not found.`);
+    
     res.json(comment);
 };
 
