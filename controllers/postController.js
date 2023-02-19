@@ -8,7 +8,7 @@ exports.get_posts = async (req, res) => {
 
 //get a specific post
 exports.get_post = async (req, res) => {
-    let id = req.params.id;
+    let id = req.params.postId;
 
     let post = await Post.findById(id);
     if(!post)
@@ -31,7 +31,7 @@ exports.create_post = async (req, res) => {
 };
 
 exports.update_post = async (req, res) => {
-    let id = req.params.id;
+    let id = req.params.postId;
     let user = req.user;
 
     let post = await Post.findById(id);
@@ -50,7 +50,7 @@ exports.update_post = async (req, res) => {
 
 /** @type {import("express").RequestHandler} */
 exports.delete_post = async (req, res) => {
-    let id = req.params.id;
+    let id = req.params.postId;
     let user = req.user;
 
     let post = await Post.findById(id);

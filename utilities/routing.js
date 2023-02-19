@@ -7,7 +7,8 @@ sets up the routes for the application
 @param app Express app
 */
 module.exports = (app)=>{
+    postRouter.use("/:postId/comments", commentRouter);
+    
     app.use("/users", userRouter);
     app.use("/posts", postRouter);
-    app.use("/posts/:post_id/comments", commentRouter);
 };

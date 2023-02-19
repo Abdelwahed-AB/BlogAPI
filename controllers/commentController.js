@@ -1,25 +1,30 @@
-const { default: mongoose } = require("mongoose");
 const { Comment } = require("../models/Comment");
 const { Post } = require("../models/Post");
 const myTransaction = require("../utilities/myTransaction");
 
-exports.get_comments = async (req, res) =>{
-    let postId =  req.params.post_id;
-    let comments = await Comment.find({post: postId});
 
+
+exports.get_comments = async (req, res) =>{
+    let postId = req.params.postId;
+    let post = await Post.findById(postId);
+
+    if(!post)
+        return res.status(404).send(`Post with id ${postId} not found.`);
+
+    let comments = await Comment.find({post: postId});
     res.json(comments);
 };
 
 
 exports.get_comment = async (req, res) =>{
-    let id = req.params.id;
+    let id = req.params.commentId;
     let comment = await Comment.findById(id);
 
     res.json(comment);
 };
 
 exports.create_comment = async (req, res, next) => {
-    let postId = req.params.post_id;
+    let postId = req.params.postid;
     let post = await Post.findById(postId);
     if(!post)
         return res.status(404).send(`Post with id ${id} not found.`);
@@ -38,7 +43,7 @@ exports.create_comment = async (req, res, next) => {
 };
 
 exports.update_comment = async (req, res) =>{
-    let id = req.params.id;
+    let id = req.params.commentId;
     let comment = await Comment.findById(id);
 
     if(!comment)
@@ -54,7 +59,7 @@ exports.update_comment = async (req, res) =>{
 };
 
 exports.delete_comment = async (req, res) =>{
-    let id = req.params.id;
+    let id = req.params.commentId;
     let comment = await Comment.findById(id);
 
     if(!comment)
@@ -63,7 +68,7 @@ exports.delete_comment = async (req, res) =>{
     if( comment.author.toHexString() !== req.user._id.toHexString() )
         return res.status(403).send("User does not have permission to delete comment.");
     
-    let post = await Post.findById(req.params.post_id);
+    let post = await Post.findById(req.params.postid);
     if(!post)
         return res.status(404).send(`Post with id ${id} not found.`);
     
