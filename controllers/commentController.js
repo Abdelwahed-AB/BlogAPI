@@ -31,11 +31,12 @@ exports.get_comment = async (req, res) =>{
     res.json(comment);
 };
 
-exports.create_comment = async (req, res, next) => {
-    let postId = req.params.postid;
+exports.create_comment = async (req, res) => {
+    let postId = req.params.postId;
     let post = await Post.findById(postId);
+
     if(!post)
-        return res.status(404).send(`Post with id ${id} not found.`);
+        return res.status(404).send(`Post with id ${postId} not found.`);
 
     let comment = new Comment(req.body);
     comment.author = req.user._id;

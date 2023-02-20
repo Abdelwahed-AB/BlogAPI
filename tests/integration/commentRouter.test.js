@@ -121,4 +121,68 @@ describe("Comment router", ()=>{
             expect(Object.keys(res.body)).toEqual(expect.arrayContaining(["_id", "content", "author"]));
         });
     });
+
+    describe("Post /", ()=>{
+
+        let post;
+        /**
+         * Test case for Post /posts/id/comments
+         * @param {Boolean} validPostId 
+         * @param {Boolean} validComment 
+         * @param {Boolean} loggedIn 
+         * @returns Promise
+         */
+        let testCase = async (validPostId=true, validComment=true, loggedIn=true) => {
+            let user = await createUser();
+            post = await createPost(user);
+
+            let pid = validPostId? post._id.toHexString(): (new mongoose.Types.ObjectId()).toHexString();
+            let token = loggedIn ? user.generateAuthToken() : "";
+            let comment = {
+                content: validComment? "validTestContent":""
+            };
+
+            let url = `/posts/${pid}/comments`;
+
+            return request(server)
+                    .post(url)
+                    .set("x-auth-token", token)
+                    .send(comment);
+        };
+
+        // it("Should return 401 if user is not logged in.", async ()=>{
+        //     let res = await testCase(true, true, false);
+
+        //     expect(res.statusCode).toBe(401);
+        // });
+
+        // it("Should return 404 if post id is not valid.", async ()=>{
+        //     let res = await testCase(false);
+
+        //     expect(res.statusCode).toBe(404);
+        // });
+
+        // it("Should return 400 if comment is not valid.", async ()=>{
+        //     let res = await testCase(true, false);
+
+        //     expect(res.statusCode).toBe(400);
+        // });
+
+        it("Should create a comment in db.", async ()=>{
+            let res = await testCase();
+            let commentsInDb = (await Post.findById(post._id)).comments;
+
+            expect(res.statusCode).toBe(200);
+            expect(commentsInDb).toBeDefined();
+            expect(commentsInDb.length).toBe(1);
+        });
+
+        it("Should return the created comment.", async ()=>{
+            let res = await testCase();
+            
+            expect(res.statusCode).toBe(200);
+            expect(Object.keys(res.body))
+                .toEqual(expect.arrayContaining(["_id", "content", "author"]));
+        });
+    });
 }); 

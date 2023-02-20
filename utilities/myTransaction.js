@@ -8,7 +8,9 @@ module.exports = async (transactionFunction) => {
     try{
         const session = await mongoose.startSession();
     
-        await session.withTransaction(transactionFunction(session));
+        await session.withTransaction(async() =>{
+            await transactionFunction(session);
+        });
 
         session.endSession();
     }catch(err){

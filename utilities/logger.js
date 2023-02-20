@@ -2,7 +2,7 @@ const winston = require("winston");
 const format = winston.format;
 
 const myFormat = format.printf(({level, message, timestamp, ...metadata})=>{
-    let msg = `${timestamp}[${level}] : ${message}`;
+    let msg = `${timestamp} [ ${level} ] : ${message}`;
     if(metadata)
         msg += "; "+JSON.stringify(metadata);
     return msg;

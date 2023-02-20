@@ -18,7 +18,7 @@ const CommentSchema = new Schema({
 let validateComment = (comment) =>{
     let schema = Joi.object({
         content: Joi.string().required(),
-        post: Joi.objectId().required(),
+        // post: Joi.objectId().required(), //not needed bcz its in the url already
     });
 
     let err = schema.validate(comment).error;
