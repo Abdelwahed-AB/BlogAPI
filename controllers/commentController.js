@@ -79,17 +79,17 @@ exports.delete_comment = async (req, res) =>{
 
     if(!comment)
         return res.status(404).send(`Comment with id ${id} not found.`);
+    
+    let post = await Post.findById(req.params.postId);
+    if(!post)
+        return res.status(404).send(`Post with id ${id} not found.`);
 
     if( comment.author.toHexString() !== req.user._id.toHexString() )
         return res.status(403).send("User does not have permission to delete comment.");
     
-    let post = await Post.findById(req.params.postid);
-    if(!post)
-        return res.status(404).send(`Post with id ${id} not found.`);
-    
-    myTransaction(async (session)=>{
+    await myTransaction(async (session)=>{
         //*delete comment from post
-        post.comments = post.comments.filter((c)=>c != comment._id);
+        post.comments = post.comments.filter((c)=> c.toHexString() != comment._id.toHexString());
         await comment.delete({session});
         await post.save({session});
     })

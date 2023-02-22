@@ -273,4 +273,88 @@ describe("Comment router", ()=>{
             expect(res.body.content).toBe("validPutTestContent");
         });
     });
+
+    describe("Delete /:id", ()=>{
+        let post;
+        let comment;
+
+        /**
+         * Test case for put /posts/postid/comments/commentid
+         * @param {Boolean} loggedIn 
+         * @param {Boolean} authorized
+         * @param {Boolean} validPostId 
+         * @param {Boolean} validCommentId 
+         * @returns Promise
+         */
+        let testCase = async (loggedIn=true, authorized=true, validPostId=true, validCommentId=true) => {
+            let user = await createUser();
+            let unAuthorizedUser = await createUser("unAuthorizedUser");
+
+            post = await createPost(user);
+            comment = await createComment(post, user);
+
+            let pid = validPostId? post._id.toHexString(): (new mongoose.Types.ObjectId()).toHexString();
+            let cid = validCommentId? comment._id.toHexString() : (new mongoose.Types.ObjectId()).toHexString();
+
+            let token = "";
+            let url = `/posts/${pid}/comments/${cid}`;
+
+            if(loggedIn){
+                token = authorized ? user.generateAuthToken() : unAuthorizedUser.generateAuthToken();
+            }
+
+            return request(server)
+                    .delete(url)
+                    .set("x-auth-token", token)
+                    .send();
+        };
+
+        it("Should return 401 if user is not logged in.", async ()=>{
+            let res = await testCase(false);
+
+            expect(res.statusCode).toBe(401);
+        });
+
+        it("Should return 403 if user is not authorized", async()=>{
+            let res = await testCase(true, false);
+
+            expect(res.statusCode).toBe(403);
+        });
+
+        it("Should return 404 if post id is not valid.", async()=>{
+            let res = await testCase(true, true, false);
+
+            expect(res.statusCode).toBe(404);
+        });
+
+        it("Should return 404 if comment id is not valid.", async()=>{
+            let res = await testCase(true, true, true, false);
+
+            expect(res.statusCode).toBe(404);
+        });
+
+        it("Should delete the comment in db.", async ()=>{
+            let res = await testCase();
+            let commentInDb = await Comment.findById(comment._id);
+
+            expect(res.statusCode).toBe(200);
+            expect(commentInDb).toBeNull();
+        });
+
+        it("Should remove the comment from post.", async ()=>{
+            let res = await testCase();
+            let postInDb = await Post.findById(post._id);
+
+            expect(res.statusCode).toBe(200);
+            expect(postInDb.comments.length).toBe(0);
+        });
+
+        it("Should return the deleted comment.", async ()=>{
+            let res = await testCase();
+
+            expect(res.statusCode).toBe(200);
+            expect(Object.keys(res.body))
+                .toEqual(expect.arrayContaining(["_id", "content", "author"]));
+        });
+    });
 }); 
